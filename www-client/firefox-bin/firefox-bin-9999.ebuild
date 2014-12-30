@@ -30,9 +30,6 @@ DESCRIPTION="Firefox Web Browser"
 MOZ_PN="${PN/-bin}"
 MOZ_FTP_URI="ftp://ftp.mozilla.org/pub/mozilla.org/${MOZ_PN}/nightly/latest-trunk"
 
-MOZ_P=${_LATEST/.en-US.linux-x86_64.tar.bz2/}
-MOZ_PV=${MOZ_P/firefox-/}
-
 SRC_URI=""
 
 HOMEPAGE="http://www.mozilla.com/firefox"
@@ -76,17 +73,24 @@ QA_PREBUILT="
 
 S="${WORKDIR}/${MOZ_PN}"
 
-pkg_setup() {
-	export _LATEST=$(curl --silent --list-only "$MOZ_FTP_URI" | grep -E "^firefox-[0-9a-z\.]+\.en-US\.linux-x86_64\.tar\.bz2$" | tail -n 1)
-	export SRC_URI="${MOZ_FTP_URI}/${_LATEST}
-    	x86? ( ${MOZ_FTP_URI}/${_LATEST/x86_64/i686} )"
-}
-
 src_unpack() {
+	local _LATEST=$(curl --silent --list-only "$MOZ_FTP_URI/" | grep -E "^firefox-[0-9a-z\.]+\.en-US\.linux-x86_64\.tar\.bz2$" | tail -n 1)
 
-	echo "!!! SRC_UNPACK"
-	
-	unpack "${A}/${MOZ_P}"
+	export MOZ_P=${_LATEST/.en-US.linux-x86_64.tar.bz2/}
+	export MOZ_PV=${MOZ_P/firefox-/}
+
+	echo $MOZ_PV
+
+	local _SRC_URI
+
+	use amd64 && _SRC_URI="${MOZ_FTP_URI}/${_LATEST}"
+	use x86 && _SRC_URI="${MOZ_FTP_URI}/${_LATEST/x86_64/i686}"
+
+	wget "${_SRC_URI}" || die
+
+	unpack ./"${_LATEST}"
+
+	#mv "${WORKDIR}/firefox" "${S}" || die
 
 	# Unpack language packs
 	mozlinguas_src_unpack
