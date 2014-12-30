@@ -10,6 +10,7 @@ DESCRIPTION="Configuration framework for zsh; enriches the command line interfac
 HOMEPAGE="https://github.com/sorin-ionescu/prezto"
 
 EGIT_REPO_URI="https://github.com/sorin-ionescu/prezto.git"
+EGIT_HAS_SUBMODULES="TRUE"
 
 LICENSE="MIT"
 SLOT="0"
