@@ -27,8 +27,6 @@ RDEPEND="dev-libs/dbus-glib
 
 	>=x11-libs/gtk+-2.2:2
 	>=media-libs/alsa-lib-1.0.16
-
-	!net-libs/libproxy[spidermonkey]
 "
 
 src_unpack() {
