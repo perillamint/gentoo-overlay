@@ -1,48 +1,95 @@
 # Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
+# $Header: /var/cvsroot/gentoo-x86/www-client/firefox-bin/firefox-bin-31.3.0.ebuild,v 1.3 2014/12/10 19:34:23 ago Exp $
 
 EAPI="5"
+MOZ_ESR="1"
 
-MOZ_PN="firefox"
+# Can be updated using scripts/get_langs.sh from mozilla overlay
+MOZ_LANGS=(af ar as ast be bg bn-BD bn-IN br bs ca cs csb cy da de el en
+en-GB en-US en-ZA eo es-AR es-CL es-ES es-MX et eu fa fi fr fy-NL ga-IE gd gl
+gu-IN he hi-IN hr hu hy-AM id is it ja kk kn ko ku lt lv mai mk ml mr nb-NO
+nl nn-NO or pa-IN pl pt-BR pt-PT rm ro ru si sk sl son sq sr sv-SE ta
+te tr uk vi zh-CN zh-TW zu)
 
-MOZ_FTP_URI="ftp://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/latest-trunk/"
+inherit eutils multilib pax-utils fdo-mime gnome2-utils mozlinguas nsplugins
 
-inherit eutils multilib pax-utils fdo-mime gnome2-utils nsplugins
+# Convert the ebuild version to the upstream mozilla version, used by mozlinguas
+#MOZ_PV="${PV/_beta/b}" # Handle beta for SRC_URI
+#MOZ_PV="${MOZ_PV/_rc/rc}" # Handle rc for SRC_URI
+#if [[ ${MOZ_ESR} == 1 ]]; then
+#	# ESR releases have slightly version numbers
+#	MOZ_PV="${MOZ_PV}esr"
+#fi
+#MOZ_P="${MOZ_PN}-${MOZ_PV}"
 
-DESCRIPTION="Firefox Web Browser Nightly Build"
-HOMEPAGE="http://nightly.mozilla.org/"
+# Upstream ftp release URI that's used by mozlinguas.eclass
+# We don't use the http mirror because it deletes old tarballs.
+
+DESCRIPTION="Firefox Web Browser"
+MOZ_PN="${PN/-bin}"
+MOZ_FTP_URI="ftp://ftp.mozilla.org/pub/mozilla.org/${MOZ_PN}/nightly/latest-trunk"
+
+MOZ_P=${_LATEST/.en-US.linux-x86_64.tar.bz2/}
+MOZ_PV=${MOZ_P/firefox-/}
+
+SRC_URI=""
+
+HOMEPAGE="http://www.mozilla.com/firefox"
 RESTRICT="strip mirror"
 
 KEYWORDS="-* ~amd64 ~x86"
 SLOT="0"
 LICENSE="MPL-2.0 GPL-2 LGPL-2.1"
-IUSE="startup-notification"
+IUSE="selinux startup-notification"
 
 DEPEND="app-arch/unzip"
-RDEPEND="dev-libs/dbus-glib
-	virtual/freedesktop-icon-theme
+RDEPEND="dev-libs/atk
+	>=dev-libs/dbus-glib-0.72
+	dev-libs/glib:2
+	>=media-libs/alsa-lib-1.0.16
+	media-libs/fontconfig
+	>=media-libs/freetype-2.4.10:2
+	>=sys-apps/dbus-0.60
+	>=x11-libs/cairo-1.10[X]
+	x11-libs/gdk-pixbuf:2
+	>=x11-libs/gtk+-2.14:2
+	x11-libs/libX11
+	x11-libs/libXext
 	x11-libs/libXrender
 	x11-libs/libXt
-	x11-libs/libXmu
-
-	>=x11-libs/gtk+-2.2:2
-	>=media-libs/alsa-lib-1.0.16
+	>=x11-libs/pango-1.22.0
+	virtual/freedesktop-icon-theme
+	selinux? ( sec-policy/selinux-mozilla )
 "
 
+QA_PREBUILT="
+	opt/${MOZ_PN}/*.so
+	opt/${MOZ_PN}/${MOZ_PN}
+	opt/${MOZ_PN}/${PN}
+	opt/${MOZ_PN}/crashreporter
+	opt/${MOZ_PN}/webapprt-stub
+	opt/${MOZ_PN}/plugin-container
+	opt/${MOZ_PN}/mozilla-xremote-client
+	opt/${MOZ_PN}/updater
+"
+
+S="${WORKDIR}/${MOZ_PN}"
+
+pkg_setup() {
+	export _LATEST=$(curl --silent --list-only "$MOZ_FTP_URI" | grep -E "^firefox-[0-9a-z\.]+\.en-US\.linux-x86_64\.tar\.bz2$" | tail -n 1)
+	export SRC_URI="${MOZ_FTP_URI}/${_LATEST}
+    	x86? ( ${MOZ_FTP_URI}/${_LATEST/x86_64/i686} )"
+}
+
 src_unpack() {
-	arch='i686'
-	if use amd64; then
-		arch='x86_64'
-	fi
-	latest=$(
-		curl --silent --list-only "$MOZ_FTP_URI" \
-			| grep -E "^firefox-[0-9a-z\.]+\.en-US\.linux-$arch\.tar\.bz2$" \
-			| tail -n 1
-	)
-	elog "Latest version is $latest"
-	wget -c "$MOZ_FTP_URI/$latest" -O "${T}/$latest"
-	mkdir -p "${S}"
-	tar xjvf "${T}/$latest" --directory "${S}" --transform 's|firefox/||' firefox
+
+	echo "!!! SRC_UNPACK"
+	
+	unpack "${A}/${MOZ_P}"
+
+	# Unpack language packs
+	mozlinguas_src_unpack
 }
 
 src_install() {
@@ -63,7 +110,7 @@ src_install() {
 	insinto "/usr/share/icons/hicolor/128x128/apps"
 	newins "${icon_path}/../../../icons/mozicon128.png" "${icon}.png" || die
 	# Install a 48x48 icon into /usr/share/pixmaps for legacy DEs
-	newicon "${S}"/browser/chrome/icons/default/default48.png ${PN}-icon.png
+	newicon "${S}"/browser/chrome/icons/default/default48.png ${PN}.png
 	domenu "${FILESDIR}"/${PN}.desktop
 	sed -i -e "s:@NAME@:${name}:" -e "s:@ICON@:${icon}:" \
 		"${ED}/usr/share/applications/${PN}.desktop" || die
@@ -80,8 +127,11 @@ src_install() {
 	# Fix prefs that make no sense for a system-wide install
 	insinto ${MOZILLA_FIVE_HOME}/defaults/pref/
 	doins "${FILESDIR}"/local-settings.js
-	insinto ${MOZILLA_FIVE_HOME}/
-	doins "${FILESDIR}"/all-gentoo.js
+	# Copy preferences file so we can do a simple rename.
+	cp "${FILESDIR}"/all-gentoo-1.js  "${D}"${MOZILLA_FIVE_HOME}/all-gentoo.js
+
+	# Install language packs
+	mozlinguas_src_install
 
 	local LANG=${linguas%% *}
 	if [[ -n ${LANG} && ${LANG} != "en" ]]; then
@@ -104,13 +154,14 @@ src_install() {
 
 	# revdep-rebuild entry
 	insinto /etc/revdep-rebuild
-	doins "${FILESDIR}"/10${PN} || die
+	echo "SEARCH_DIRS_MASK=${MOZILLA_FIVE_HOME}" >> ${T}/10${PN}
+	doins "${T}"/10${PN} || die
 
 	# Plugins dir
 	share_plugins_dir
 
 	# Required in order to use plugins and even run firefox on hardened.
-	pax-mark mr "${ED}"/${MOZILLA_FIVE_HOME}/{firefox,firefox-nightly-bin,plugin-container}
+	pax-mark mr "${ED}"/${MOZILLA_FIVE_HOME}/{firefox,firefox-bin,plugin-container}
 }
 
 pkg_preinst() {
