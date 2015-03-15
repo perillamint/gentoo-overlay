@@ -74,7 +74,7 @@ QA_PREBUILT="
 S="${WORKDIR}/${MOZ_PN}"
 
 src_unpack() {
-	local _LATEST=$(curl --silent --list-only "$MOZ_FTP_URI/" | grep -E "^firefox-[0-9a-z\.]+\.en-US\.linux-x86_64\.tar\.bz2$" | tail -n 1)
+	local _LATEST=$(curl --silent --list-only --disable-epsv "$MOZ_FTP_URI/" | grep -E "^firefox-[0-9a-z\.]+\.en-US\.linux-x86_64\.tar\.bz2$" | tail -n 1)
 
 	export MOZ_P=${_LATEST/.en-US.linux-x86_64.tar.bz2/}
 	export MOZ_PV=${MOZ_P/firefox-/}
