@@ -47,7 +47,7 @@ RDEPEND="X? (
 	ncurses? ( sys-libs/ncurses )
 	nls? ( virtual/libintl )
 	qt4? ( dev-qt/qtgui:4[qt3support] )
-	qt5? ( dev-qt/qtgui:5[qt3support] )
+	qt5? ( dev-qt/qtgui:5 )
 	skk? ( app-i18n/skk-jisyo )
 	sqlite? ( dev-db/sqlite:3 )
 	ssl? ( dev-libs/openssl )
