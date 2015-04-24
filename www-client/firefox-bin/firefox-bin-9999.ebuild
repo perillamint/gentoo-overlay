@@ -12,7 +12,9 @@ gu-IN he hi-IN hr hu hy-AM id is it ja kk kn ko ku lt lv mai mk ml mr nb-NO
 nl nn-NO or pa-IN pl pt-BR pt-PT rm ro ru si sk sl son sq sr sv-SE ta
 te tr uk vi zh-CN zh-TW zu)
 
-inherit eutils multilib pax-utils fdo-mime gnome2-utils mozlinguas nsplugins
+#Disable mozlinguas
+#inherit eutils multilib pax-utils fdo-mime gnome2-utils mozlinguas nsplugins
+inherit eutils multilib pax-utils fdo-mime gnome2-utils nsplugins
 
 # Convert the ebuild version to the upstream mozilla version, used by mozlinguas
 #MOZ_PV="${PV/_beta/b}" # Handle beta for SRC_URI
@@ -93,7 +95,7 @@ src_unpack() {
 	#mv "${WORKDIR}/firefox" "${S}" || die
 
 	# Unpack language packs
-	mozlinguas_src_unpack
+	# mozlinguas_src_unpack
 }
 
 src_install() {
@@ -135,7 +137,7 @@ src_install() {
 	cp "${FILESDIR}"/all-gentoo-1.js  "${D}"${MOZILLA_FIVE_HOME}/all-gentoo.js
 
 	# Install language packs
-	mozlinguas_src_install
+	# mozlinguas_src_install
 
 	local LANG=${linguas%% *}
 	if [[ -n ${LANG} && ${LANG} != "en" ]]; then
