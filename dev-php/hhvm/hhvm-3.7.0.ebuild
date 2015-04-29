@@ -1,78 +1,79 @@
-# Copyright 2014–2015 W. Mark Kubacki
-# Distributed under the terms of the OSI Reciprocal Public License
+# Copyright 1999-2013 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+# $Header: $
 
 EAPI="5"
 
-inherit eutils flag-o-matic git-2 user versionator
+inherit eutils git-2 user
 
-DESCRIPTION="Virtual machine designed for executing programs written in Hack and PHP."
-HOMEPAGE="http://hhvm.com/"
-SRC_URI=""
+EGIT_REPO_URI="https://github.com/facebook/hhvm.git"
 
-LICENSE="PHP-3"
-SLOT="0"
-KEYWORDS="~amd64 -x86 -arm"
-
-EGIT_REPO_URI="git://github.com/facebook/hhvm.git"
-EGIT_BRANCH="HHVM-$(get_version_component_range 1-2 )"
+# For now, git is the only way to fetch releases
+# https://github.com/facebook/hhvm/issues/2806
 EGIT_COMMIT="HHVM-${PV}"
+KEYWORDS="-* amd64"
 
-IUSE="cotire debug devel +freetype gmp hack iconv imagemagick +jemalloc +jpeg jsonc +png sqlite3 +webp xen yaml +zend-compat"
+IUSE="debug hack jsonc mysql-socket xen zend-compat"
 
-DEPEND="
-	>=dev-libs/libevent-2.0.9
-	>=dev-libs/libzip-0.11.0
-	>=dev-libs/oniguruma-5.9.5
-	|| ( >=dev-db/mariadb-10.0 virtual/mysql )
-	freetype? ( media-libs/freetype )
-	gmp? ( dev-libs/gmp )
-	hack? ( >=dev-lang/ocaml-3.12[ocamlopt] )
-	iconv? ( virtual/libiconv )
-	imagemagick? ( media-gfx/imagemagick )
-	jemalloc? ( >=dev-libs/jemalloc-3.5.1[stats] )
-	jsonc? ( dev-libs/json-c )
-	jpeg? ( virtual/jpeg )
-	png? ( media-libs/libpng )
-	sqlite3? ( =dev-db/sqlite-3.7* )
-	webp? ( media-libs/libvpx )
-	yaml? ( dev-libs/libyaml )
+DESCRIPTION="Virtual Machine, Runtime, and JIT for PHP"
+HOMEPAGE="https://github.com/facebook/hhvm"
+
+RDEPEND="
+	app-arch/bzip2
 	dev-cpp/glog
 	dev-cpp/tbb
+	dev-db/sqlite
+	hack? ( >=dev-lang/ocaml-3.12[ocamlopt] )
+	>=dev-libs/boost-1.49[context]
+	dev-libs/cloog
 	dev-libs/elfutils
 	dev-libs/expat
 	dev-libs/icu
+	>=dev-libs/jemalloc-3.0.0[stats]
+	jsonc? ( dev-libs/json-c )
 	dev-libs/libdwarf
+	>=dev-libs/libevent-2.0.9
 	dev-libs/libmcrypt
 	dev-libs/libmemcached
-	>=dev-libs/libpcre-8.35[jit]
+	dev-libs/libpcre
 	dev-libs/libxml2
 	dev-libs/libxslt
+	>=dev-libs/libzip-0.11.0
+	dev-libs/oniguruma
 	dev-libs/openssl
+	media-gfx/imagemagick
+	media-libs/freetype
+	media-libs/gd[jpeg,png]
 	net-libs/c-client[kerberos]
 	>=net-misc/curl-7.28.0
 	net-nds/openldap
 	sys-libs/libcap
 	sys-libs/ncurses
+	sys-libs/readline
 	sys-libs/zlib
-	"
-RDEPEND="${DEPEND}
-	sys-process/lsof
-	"
-DEPEND="${DEPEND}
-	>=dev-libs/boost-1.49[static-libs]
-	dev-libs/cloog[static-libs]
-	>=dev-util/cmake-3.0.2
-	media-libs/gd[jpeg,png,static-libs]
-	>=sys-devel/gcc-4.8[cxx(+),-hardened]
+	virtual/mysql
+"
+
+DEPEND="
+	${RDEPEND}
+	>=dev-util/cmake-2.8.7
 	sys-devel/binutils[static-libs]
 	sys-devel/bison
 	sys-devel/flex
-	sys-libs/readline[static-libs]
-	sys-libs/zlib[static-libs]
-	"
+"
 
-# for DEPEND run:
-# for LIB in $(ldd $(which hhvm) | cut -d ' ' -f 3 | grep -F / | sort -u); do q belongs "${LIB}" | cut -d ' ' -f 1; done | sort -u
+SLOT="0"
+LICENSE="PHP-3"
+
+pkg_pretend() {
+	if [[ $(gcc-major-version) -lt 4 ]] || \
+			( [[ $(gcc-major-version) -eq 4 && $(gcc-minor-version) -lt 8 ]] ) \
+			; then
+		eerror "${PN} needs to be built with gcc-4.8 or later."
+		eerror "Please use gcc-config to switch to gcc-4.8 or later version."
+		die
+	fi
+}
 
 pkg_setup() {
 	ebegin "Creating hhvm user and group"
@@ -81,78 +82,65 @@ pkg_setup() {
 	eend $?
 }
 
-src_prepare() {
+src_prepare()
+{
 	git submodule update --init --recursive
-
-	filter-flags -ffast-math
-	replace-flags -Ofast -O2 # or compilation will fail
-
-	# output is not humanly readable without this:
-	if [[ $(gcc-major-version) -gt 4 ]] || \
-	( [[ $(gcc-major-version) -eq 4 && $(gcc-minor-version) -ge 9 ]] ); then
-		append-flags -fdiagnostics-color=always
-	fi
-	# GCC 5.0 with CXX will complain about too few registers without this
-	if [[ $(gcc-major-version) -eq 5 && $(gcc-minor-version) -eq 0 ]]; then
-		replace-flags -O[3-6] -O2
-	fi
-
-	# HHVM's dependencies need this when statically compiled, which is desirable
-	append-flags -pthread
-
-	# PR#4342, dependencies already guarantee that PCRE works
-	sed -i \
-		-e 's:find_package(PCRE REQUIRED):find_package(PCRE):' \
-		CMake/HPHPFindLibs.cmake
-	# use the already installed PCRE
-	sed -i \
-		-e '/^  pcre/d' \
-		third-party/CMakeLists.txt
-	rm -rf third-party/pcre
-
-	epatch_user
 }
 
-src_configure() {
-	econf \
-		-DCMAKE_INSTALL_PREFIX="/usr" \
-		-DCMAKE_INSTALL_DO_STRIP=OFF \
-		-DCMAKE_BUILD_TYPE=$(usex debug Debug Release) \
-		-DSTATIC_CXX_LIB=ON \
-		-DBoost_USE_STATIC_LIBS=ON \
-		-DCMAKE_EXE_LINKER_FLAGS=-static \
-		-DENABLE_ZEND_COMPAT=$(usex zend-compat ON OFF) \
-		$(use cotire && printf -- "-DENABLE_COTIRE=ON") \
-		$(use jsonc && printf -- "-DUSE_JSONC=ON") \
-		$(use xen && printf -- "-DDISABLE_HARDWARE_COUNTERS=ON") \
-		${EXTRA_ECONF} || die "configure failed"
+src_configure()
+{
+	CMAKE_BUILD_TYPE="Release"
+	if use debug; then
+		CMAKE_BUILD_TYPE="Debug"
+	fi
+
+	if use jsonc; then
+		HHVM_OPTS="${HHVM_OPTS} -DUSE_JSONC=ON"
+	fi
+
+	if use xen; then
+		HHVM_OPTS="${HHVM_OPTS} -DDISABLE_HARDWARE_COUNTERS=ON"
+	fi
+
+	if use zend-compat; then
+		HHVM_OPTS="${HHVM_OPTS} -DENABLE_ZEND_COMPAT=ON"
+	fi
+
+	if use mysql-socket; then
+		ebegin "Searching for MySQL socket..."
+		if [[ -S /var/run/mysqld/mysqld.sock ]]; then
+			eend $?
+		else
+			eerror "Socket not found. Please start the MySQL/MariaDB server."
+			die "MySQL socket support enabled but server isn't running"
+		fi
+	else
+		HHVM_OPTS="${HHVM_OPTS} -DMYSQL_UNIX_SOCK_ADDR=/dev/null"
+	fi
+
+	econf -DCMAKE_INSTALL_PREFIX="/usr" -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE}" ${HHVM_OPTS}
 }
 
-src_install() {
-	emake DESTDIR="${D}" install
+src_install()
+{
+	emake install DESTDIR="${D}"
 
 	if use hack; then
 		dobin hphp/hack/bin/hh_client
 		dobin hphp/hack/bin/hh_server
 		dobin hphp/hack/bin/hh_single_type_check
 		dodir "/usr/share/hhvm/hack"
+		cp -a "${S}/hphp/hack/editor-plugins/emacs" "${D}/usr/share/hhvm/hack/"
+		cp -a "${S}/hphp/hack/editor-plugins/vim" "${D}/usr/share/hhvm/hack/"
 		cp -a "${S}/hphp/hack/tools" "${D}/usr/share/hhvm/hack/"
-	fi
-
-	if use devel; then
-		cp -a "${S}/hphp/test" "${D}/usr/lib/hhvm/"
 	fi
 
 	newinitd "${FILESDIR}"/hhvm.initd-r4 hhvm
 	newconfd "${FILESDIR}"/hhvm.confd-r4 hhvm
-
 	dodir "/etc/hhvm"
 	insinto /etc/hhvm
 	newins "${FILESDIR}"/php.ini php.ini
 	newins "${FILESDIR}"/php.ini php.ini.dist
 	newins "${FILESDIR}"/server.ini server.ini
 	newins "${FILESDIR}"/server.ini server.ini.dist
-
-	insinto /etc/logrotate.d
-	newins "${FILESDIR}"/hhvm.logrotate hhvm
 }
