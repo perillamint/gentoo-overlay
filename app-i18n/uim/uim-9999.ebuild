@@ -3,7 +3,7 @@
 # $Header: /var/cvsroot/gentoo-x86/app-i18n/uim/uim-1.8.6-r1.ebuild,v 1.6 2014/06/22 12:39:57 ago Exp $
 
 EAPI="5"
-inherit autotools eutils multilib elisp-common gnome2-utils
+inherit autotools eutils multilib elisp-common gnome2-utils git-2
 
 DESCRIPTION="Simple, secure and flexible input method library"
 HOMEPAGE="http://code.google.com/p/uim/"
