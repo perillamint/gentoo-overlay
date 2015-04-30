@@ -99,8 +99,8 @@ src_prepare() {
 		"${FILESDIR}"/${PN}-1.6.0-gentoo.patch \
 		"${FILESDIR}"/${PN}-1.5.4-zhTW.patch
 
-    cd sigscheme/libgcroots && git checkout master && ./autogen.sh
-	cd sigscheme && git checkout master && ./autogen.sh
+    (cd sigscheme/libgcroots && git checkout master && ./autogen.sh)
+	(cd sigscheme && git checkout master && ./autogen.sh)
 	./autogen.sh
 
 	# bug 275420
