@@ -93,12 +93,18 @@ pkg_setup() {
 }
 
 src_prepare() {
+    git submodule update --init --recursive
+
 	epatch \
 		"${FILESDIR}"/${PN}-1.6.0-gentoo.patch \
 		"${FILESDIR}"/${PN}-1.5.4-zhTW.patch
 
+    cd sigscheme/libgcroots && git checkout master && ./autogen.sh
+	cd sigscheme && git checkout master && ./autogen.sh
+	./autogen.sh
+
 	# bug 275420
-	sed -i -e "s:\$libedit_path/lib:/$(get_libdir):g" configure.ac || die "sed failed!"
+	#sed -i -e "s:\$libedit_path/lib:/$(get_libdir):g" configure.ac || die "sed failed!"
 
 	AT_NO_RECURSIVE=1 eautoreconf
 }
