@@ -3,11 +3,10 @@
 # $Header: /var/cvsroot/gentoo-x86/app-i18n/uim/uim-1.8.6-r1.ebuild,v 1.6 2014/06/22 12:39:57 ago Exp $
 
 EAPI="5"
-inherit autotools eutils multilib elisp-common gnome2-utils git-2
+inherit autotools eutils multilib elisp-common gnome2-utils
 
 DESCRIPTION="Simple, secure and flexible input method library"
 HOMEPAGE="http://code.google.com/p/uim/"
-
 EGIT_REPO_URI="https://github.com/uim/uim.git"
 
 LICENSE="BSD GPL-2 LGPL-2.1"
@@ -96,8 +95,7 @@ pkg_setup() {
 src_prepare() {
 	epatch \
 		"${FILESDIR}"/${PN}-1.6.0-gentoo.patch \
-		"${FILESDIR}"/${PN}-1.5.4-zhTW.patch \
-		"${FILESDIR}"/${PN}-1.8.6-qmake-qt5.patch
+		"${FILESDIR}"/${PN}-1.5.4-zhTW.patch
 
 	# bug 275420
 	sed -i -e "s:\$libedit_path/lib:/$(get_libdir):g" configure.ac || die "sed failed!"
