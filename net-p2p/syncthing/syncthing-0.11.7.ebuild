@@ -21,7 +21,7 @@ LICENSE="GPL-3+"
 SLOT="0"
 KEYWORDS="~amd64"
 
-DEPEND=">=dev-lang/go-1.3.0"
+DEPEND=">=dev-lang/go-1.4.0"
 
 S="${WORKDIR}"
 
