@@ -13,7 +13,7 @@ HOMEPAGE="http://www.amd.com"
 SLOT="1"
 # Uses javascript for download YESSSS
 #DRIVERS_URI="http://www2.ati.com/drivers/linux/amd-catalyst-13.12-linux-x86.x86_64.zip"
-DRIVERS_URI="http://galadriel.gentoo.moe/fglrx-installer_15.5.orig.tar.gz"
+DRIVERS_URI="http://galadriel.gentoo.moe/amd-catalyst-omega-15.5-linux-run-installers.zip"
 XVBA_SDK_URI="http://developer.amd.com/wordpress/media/2012/10/xvba-sdk-0.74-404001.tar.gz"
 SRC_URI="${DRIVERS_URI} ${XVBA_SDK_URI}"
 FOLDER_PREFIX="common/"
@@ -26,7 +26,7 @@ RESTRICT="bindist test"
 
 RDEPEND="
 	<=x11-base/xorg-server-1.17.49[-minimal]
-	>=app-eselect/eselect-opengl-1.0.7
+	app-eselect/eselect-opengl
 	app-eselect/eselect-opencl
 	sys-power/acpid
 	x11-apps/xauth
