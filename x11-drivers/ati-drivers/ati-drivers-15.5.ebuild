@@ -304,6 +304,9 @@ src_prepare() {
 	# Fix #483400
 	epatch "${FILESDIR}/fgl_glxgears-do-not-include-glATI.patch"
 
+	# Fix #548118
+	epatch "${FILESDIR}/548118_strnicmp.patch"
+
 	# Compile fix, https://bugs.gentoo.org/show_bug.cgi?id=454870
 	use pax_kernel && epatch "${FILESDIR}/const-notifier-block.patch"
 
