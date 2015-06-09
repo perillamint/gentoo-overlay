@@ -26,7 +26,7 @@ RESTRICT="bindist test"
 
 RDEPEND="
 	<=x11-base/xorg-server-1.17.49[-minimal]
-	app-eselect/eselect-opengl
+	>=app-eselect/eselect-opengl-1.0.8
 	app-eselect/eselect-opencl
 	sys-power/acpid
 	x11-apps/xauth
