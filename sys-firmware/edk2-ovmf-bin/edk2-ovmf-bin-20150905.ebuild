@@ -33,7 +33,7 @@ src_install() {
 	doins -r "${S}"/usr/share/*
 
     if use qemu; then
-        dosym ../edk2.git/OVMF.fd /usr/share/qemu/efi-bios.bin
+        dosym ../edk2.git/OVMF-with-csm.fd /usr/share/qemu/efi-bios.bin
     fi
 
 }
