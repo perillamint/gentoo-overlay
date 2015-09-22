@@ -5,7 +5,7 @@ EAPI="5"
 
 MOZ_PN="firefox"
 
-MOZ_FTP_URI="https://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/latest-trunk"
+MOZ_TRUNK_URI="https://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/latest-trunk/"
 
 inherit eutils multilib pax-utils fdo-mime gnome2-utils nsplugins
 
@@ -37,12 +37,12 @@ src_unpack() {
 		arch='x86_64'
 	fi
 	latest=$(
-		curl --silent "$MOZ_FTP_URI" \
+		curl --silent "$MOZ_TRUNK_URI" \
 			| grep -oP "(firefox-[0-9a-z.]*\.en-US\.linux-x86_64\.tar\.bz2)" \
 			| tail -n 1
 	)
 	elog "Latest version is $latest"
-	wget -c "$MOZ_FTP_URI/$latest" -O "${T}/$latest"
+	wget -c "$MOZ_TRUNK_URI$latest" -O "${T}/$latest"
 	mkdir -p "${S}"
 	tar xjvf "${T}/$latest" --directory "${S}" --transform 's|firefox/||' firefox
 }
