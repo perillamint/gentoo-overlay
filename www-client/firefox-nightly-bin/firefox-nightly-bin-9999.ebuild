@@ -48,7 +48,7 @@ src_unpack() {
 }
 
 src_install() {
-	declare MOZILLA_FIVE_HOME=/opt/${MOZ_PN}
+	declare MOZILLA_FIVE_HOME=/opt/${MOZ_PN}-nightly
 
 	local size sizes icon_path icon name
 	sizes="16 32 48"
@@ -100,7 +100,7 @@ src_install() {
 	unset LD_PRELOAD
 	LD_LIBRARY_PATH="/opt/firefox/"
 	GTK_PATH=/usr/lib/gtk-2.0/
-	exec /opt/${MOZ_PN}/${MOZ_PN} "\$@"
+	exec ${MOZILLA_FIVE_HOME}/${MOZ_PN} "\$@"
 	EOF
 	fperms 0755 /usr/bin/${PN}
 
