@@ -60,6 +60,7 @@ DEPEND="
 	sys-devel/binutils[static-libs]
 	sys-devel/bison
 	sys-devel/flex
+	dev-lang/ocaml
 "
 
 SLOT="0"
