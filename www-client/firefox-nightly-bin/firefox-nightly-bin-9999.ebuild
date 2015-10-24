@@ -5,7 +5,7 @@ EAPI="5"
 
 MOZ_PN="firefox"
 
-MOZ_TRUNK_URI="https://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/latest-trunk/"
+MOZ_TRUNK_URI="https://ftp.mozilla.org/pub/firefox/nightly/latest-trunk/"
 
 inherit eutils multilib pax-utils fdo-mime gnome2-utils nsplugins
 
