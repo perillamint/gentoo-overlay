@@ -19,11 +19,11 @@ RDEPEND="dev-lang/erlang"
 DEPEND="${RDEPEND}"
 
 src_prepare() {
-	sed -i -e 's/cp -pPR $(INCDIR) $(INSTALLDIR); \\/echo " "; \\/' Makefile || die
+	sed -i -e 's/ln -s/cp/g' Makefile || die
 }
 
 src_install() {
-	ERL_LIBS="${D}/usr/$(get_libdir)/erlang/lib/" make install DESTBINDIR="${D}"
+	ERL_LIBS="${D}/usr/$(get_libdir)/erlang/lib/" make install DESTBINDIR="${D}/usr"
 	mkdir -p "${D}"/usr/bin
 	cp lfe "${D}"/usr/bin
 }
