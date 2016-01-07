@@ -23,7 +23,7 @@ src_prepare() {
 }
 
 src_install() {
-	ERL_LIBS="${D}/usr/$(get_libdir)/erlang/lib/" make install DESTDIR="${D}"
+	ERL_LIBS="${D}/usr/$(get_libdir)/erlang/lib/" make install DESTBINDIR="${D}"
 	mkdir -p "${D}"/usr/bin
 	cp lfe "${D}"/usr/bin
 }
