@@ -8,7 +8,7 @@ inherit multilib
 
 DESCRIPTION="Lisp-flavoured Erlang"
 HOMEPAGE="http://lfe.github.io/"
-SRC_URI="https://github.com/rvirding/lfe/archive/v${PV}.zip"
+SRC_URI="https://github.com/lfe/lfe/archive/v${PV}.zip"
 
 LICENSE="BSD-2"
 SLOT="0"
