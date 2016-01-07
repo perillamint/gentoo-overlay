@@ -23,7 +23,18 @@ src_prepare() {
 }
 
 src_install() {
-	ERL_LIBS="${D}/usr/$(get_libdir)/erlang/lib/" make install DESTBINDIR="${D}/usr"
-	mkdir -p "${D}"/usr/bin
-	cp lfe "${D}"/usr/bin
+	mkdir -p "${D}/usr/$(get_libdir)/erlang/bin/"
+	mkdir -p "${D}/usr/$(get_libdir)/erlang/lib/lfe-${PV}"
+	mkdir -p "${D}/usr/bin/"
+
+	ERL_LIBS="${D}/usr/$(get_libdir)/erlang/lib/" make install DESTBINDIR="${D}/usr/$(get_libdir)/erlang/bin/"
+	export DESTBINDIR="${D}/usr/bin/"
+
+	#Copy it manually.
+	cp -r ebin "${D}/usr/$(get_libdir)/erlang/lib/lfe-${PV}/"
+	cp -r emacs "${D}/usr/$(get_libdir)/erlang/lib/lfe-${PV}/"
+
+	ln -s "/usr/$(get_libdir)/erlang/bin/lfe" "$DESTBINDIR"
+	ln -s "/usr/$(get_libdir)/erlang/bin/lfec" "$DESTBINDIR"
+	ln -s "/usr/$(get_libdir)/erlang/bin/lfescript" "$DESTBINDIR"
 }
