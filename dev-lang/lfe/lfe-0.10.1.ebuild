@@ -18,9 +18,6 @@ IUSE=""
 RDEPEND="dev-lang/erlang"
 DEPEND="${RDEPEND}"
 
-#eh?
-S=${WORKDIR}/${P}a
-
 src_prepare() {
 	sed -i -e 's/cp -pPR $(INCDIR) $(INSTALLDIR); \\/echo " "; \\/' Makefile || die
 }
