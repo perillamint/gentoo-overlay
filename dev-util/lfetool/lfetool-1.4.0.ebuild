@@ -21,5 +21,6 @@ DEPEND="${RDEPEND}"
 src_install() {
 	mkdir -p "${D}/usr/bin/"
 
+	./lfetool extract
 	./lfetool install lfetool "${D}/usr/bin"
 }
