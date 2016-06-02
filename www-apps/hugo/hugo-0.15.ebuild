@@ -30,6 +30,7 @@ src_install() {
 	# Since Go is "very particular" about file locations.
 	local newBaseDir="src/github.com/${GITHUB_USER}"
 	local newWorkDir="${newBaseDir}/${PN}"
+	local GOPATH="${PWD}"
 
 	mkdir -p "${newBaseDir}"
 	mv "${P}" "${newWorkDir}"
@@ -37,6 +38,7 @@ src_install() {
 	cd "${newWorkDir}"
 
 	# Build hugo.
+	local A
 	go get
 	go build -o hugo main.go
 
